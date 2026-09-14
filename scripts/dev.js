@@ -24,7 +24,10 @@ const server = http.createServer(async (req, res) => {
       if (Buffer.byteLength(body) > 16384) { res.writeHead(413).end(); return; }
     }
     req.body = body;
-    return handler(req, res);
+    delete require.cache[require.resolve('../api/book-call.js')];
+    delete require.cache[require.resolve('../validation.js')];
+    const freshHandler = require('../api/book-call.js');
+    return freshHandler(req, res);
   }
   const file = path.join(root, pathname === '/' ? 'index.html' : pathname);
   if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404).end(); return; }
