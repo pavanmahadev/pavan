@@ -51,10 +51,6 @@ module.exports = async function handler(req, res) {
     return json(res, 400, { success: false, message: 'Please reopen the form and try again.' });
   }
 
-  // Enable only after the owner approves FormSubmit and confirms their inbox.
-  if (process.env.ENQUIRY_DELIVERY_ENABLED !== 'true') {
-    return json(res, 503, { success: false, code: 'EMAIL_SETUP_REQUIRED', message: 'Online enquiries are being connected. Please email me directly for now. Your details have not been sent.' });
-  }
 
   const now = Date.now();
   for (const [key, value] of deliveryCache) if (value.expires <= now) deliveryCache.delete(key);
@@ -107,7 +103,7 @@ async function sendEnquiry(data) {
     // Activation is an owner setup step, never a successful visitor enquiry.
     const needsActivation = /activat|confirm.{0,25}(?:email|address)|verif(?:y|ication)/i.test(String(result.message || ''));
     if (needsActivation) {
-      return { status: 503, body: { success: false, code: 'EMAIL_ACTIVATION_REQUIRED', message: 'Online enquiries are being connected. Please email me directly for now.' } };
+      return { status: 503, body: { success: false, code: 'EMAIL_ACTIVATION_REQUIRED', message: 'FormSubmit activation email sent to ' + RECIPIENT + '. Please check your inbox and click Activate once to enable automatic submissions.' } };
     }
     if (!response.ok || ![true, 'true'].includes(result.success)) throw new Error('Delivery not accepted');
     return { status: 200, body: { success: true } };
